@@ -1,0 +1,155 @@
+########### payment/wallet container configuration ############
+
+version: '2'
+services:
+
+###############################################################  
+
+  monerod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BRANCH: v0.15.0.5
+        DEBIAN_VERSION: "stable-20200130-slim"
+    command:
+       # remove for production use
+      -testnet 
+      -data-dir /monero
+      -non-interactive
+    volumes:
+      # the monerod config file
+      - ./monerod/config.conf:/monero
+    ports:
+      # mainnet
+      - "28080:28080"
+      # regtest
+      - "28081:28081"
+    environment:
+      - USER_ID=1000
+      - P2P_BIND_IP=0.0.0.0
+      # mainnet = 28081
+      # regtest = 28081
+      - P2P_BIND_PORT=28080
+      - LOG_LEVEL=0
+      - RPC_USER="plutus"
+      - RPC_PASSWD="add8ncHdof90"
+      - RPC_BIND_IP=0.0.0.0
+      - RPC_BIND_PORT=28081
+      # enable tor use for rpc
+      - USE_TORSOCKS=NO
+      # enable tor use for the monero daemon
+      - USE_TOR=YES
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
+
+###############################################################
+
+  bitcoind:
+    image: ruimarinho/bitcoin-core:0.19-alpine
+    command:
+      -printtoconsole=1
+      # enable testnet
+      -testnet=1
+      -rpcallowip=127.0.0.1
+      -rpcbind=0.0.0.0
+      -rpcauth='plutus:0a9342a9c062fd8f12e680202f9bf40e$9d0c18819f1f72561a0a083e36d73c09570fd1e25ae603db50d86e242e127cd8'
+    volumes:
+      - bitcoind-data:/home/bitcoin/.bitcoin
+    ports:
+      - "8332:8322"
+      - "8333:8333"
+      - "18332:18332"
+      - "18333:18333"
+    environment:
+      - BITCOIN_VERSION=0.19.0.1
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
+
+###############################################################
+
+  plutus:
+    build:
+      context: ./plutus
+      dockerfile: Dockerfile
+    volumes:
+      - plutus-data:/plutus
+    ports:
+      - "8332:8322"
+      - "8333:8333"
+      - "18332:18332"
+      - "18333:18333"
+      - "28081:28081"
+      - "127.0.0.1:5432:5432"
+    expose:
+      - "5432"
+      - "8899"
+    environment:
+      - HOST=database port=5432 user=plutus dbname=plutus password=add8ncHdof90 sslmode=disable
+      - DEBUG=true
+      - MONERO_WALLET_RPC_URL=http://monerod/
+      - BITCOIN_WALLET_RPC_URL=http://bitcoind/
+    restart: unless-stopped
+    
+###############################################################
+    
+  postgres:
+    image: postgres
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_PASSWORD=add8ncHdof90
+      - POSTGRES_USER=plutus
+      - POSTGRES_DB=plutus
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
+        
+###############################################################
+    
+  tor-node:
+    build:
+      context: ./tor
+      dockerfile: Dockerfile
+    volumes:
+      - tor-files:/etc/tor
+      - tor-config:/var/lib/tor
+    expose:
+      - "9051"
+    environment:
+      - POSTGRES_PASSWORD=add8ncHdof90
+      - POSTGRES_USER=plutus
+      - POSTGRES_DB=plutus
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
+    
+
+###############################################################
+
+volumes:
+    bitcoind-data:
+    monerod-data:
+    plutus-data:
+    database-data:
+    
+###############################################################
+    
+configs:
+    
