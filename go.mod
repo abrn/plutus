@@ -9,7 +9,8 @@ require (
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 	github.com/gin-contrib/pprof v1.3.0
-	github.com/gin-gonic/gin v1.6.2
+	github.com/gin-gonic/gin v1.7.7
+	github.com/gorilla/rpc v1.2.0 // indirect
 	github.com/jinzhu/gorm v1.9.12
 	github.com/joho/godotenv v1.3.0
 	github.com/kr/pretty v0.1.0 // indirect
@@ -21,7 +22,7 @@ require (
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
 	go.uber.org/atomic v1.5.1 // indirect
 	go.uber.org/ratelimit v0.1.0
-	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
